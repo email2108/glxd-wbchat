@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setup Admin - GLXD</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center">
+    <div class="max-w-md w-full space-y-8 p-8">
+        <div class="text-center">
+            <div class="mx-auto h-12 w-12 bg-purple-600 rounded-full flex items-center justify-center">
+                <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                </svg>
+            </div>
+            <h2 class="mt-6 text-3xl font-extrabold text-gray-900">Thiết lập Admin GLXD</h2>
+            <p class="mt-2 text-sm text-gray-600">Thiết lập tài khoản admin duy nhất cho hệ thống</p>
+        </div>
+        
+        <div class="mt-8 space-y-6">
+            <div class="rounded-md shadow-sm -space-y-px">
+                <div>
+                    <label for="telegramChatId" class="sr-only">Telegram Chat ID</label>
+                    <input id="telegramChatId" name="telegramChatId" type="text" required
+                           class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-purple-500 focus:border-purple-500 focus:z-10 sm:text-sm"
+                           placeholder="Telegram Chat ID">
+                </div>
+                <div>
+                    <label for="adminSecret" class="sr-only">Admin Secret</label>
+                    <input id="adminSecret" name="adminSecret" type="password" required
+                           class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-purple-500 focus:border-purple-500 focus:z-10 sm:text-sm"
+                           placeholder="Admin Secret" value="glxd-admin-2024">
+                </div>
+            </div>
+
+            <div>
+                <button type="submit" onclick="setupAdmin()"
+                        class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                    Thiết lập Admin
+                </button>
+            </div>
+
+            <div id="result" class="hidden mt-4 p-4 rounded-md"></div>
+        </div>
+
+        <div class="mt-8 border-t border-gray-200 pt-6">
+            <h3 class="text-lg font-medium text-gray-900">Hướng dẫn lấy Telegram Chat ID:</h3>
+            <ol class="mt-2 text-sm text-gray-600 space-y-1">
+                <li>1. Mở Telegram và tìm bot <code class="bg-gray-100 px-1 rounded">@glxdshop_bot</code></li>
+                <li>2. Gửi tin nhắn bất kỳ (ví dụ: "hello")</li>
+                <li>3. Bot sẽ trả lời với mã OTP</li>
+                <li>4. Chat ID của bạn là ID số Telegram của bạn</li>
+                <li>5. Hoặc gửi <code class="bg-gray-100 px-1 rounded">/start</code> cho bot <code class="bg-gray-100 px-1 rounded">@userinfobot</code> để lấy Chat ID</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        async function setupAdmin() {
+            const telegramChatId = document.getElementById('telegramChatId').value;
+            const adminSecret = document.getElementById('adminSecret').value;
+            const resultDiv = document.getElementById('result');
+
+            if (!telegramChatId || !adminSecret) {
+                showResult('Vui lòng nhập đầy đủ thông tin', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/setup-admin', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        telegramChatId: telegramChatId,
+                        adminSecret: adminSecret
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showResult(`✅ ${data.message}`, 'success');
+                } else {
+                    showResult(`❌ ${data.message}`, 'error');
+                }
+            } catch (error) {
+                showResult('❌ Lỗi kết nối đến server', 'error');
+            }
+        }
+
+        function showResult(message, type) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = `mt-4 p-4 rounded-md ${
+                type === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
+            }`;
+            resultDiv.textContent = message;
+            resultDiv.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
